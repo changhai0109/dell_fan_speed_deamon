@@ -1,0 +1,117 @@
+#!/usr/bin/python3
+
+import os, json, time, re
+
+min_speed = 0.05
+max_speed = 1
+speed_step = 0.05
+cpu_thres_temp_min = 85
+cpu_thres_temp_max = 100
+gpu_thres_temp_min = 70
+gpu_thres_temp_max = 85
+ipmi_ip = "192.168.0.120"
+ipmi_username = "root"
+ipmi_password = "calvin"
+
+def get_cpu_temp():
+    temp = list()
+    stdout = os.popen('sensors -j')
+    lines = stdout.readlines()
+    stdout.close()
+    line = ""
+    for ll in lines:
+        line += ll
+    jd = json.loads(line)
+    for key1 in jd.keys():
+        for key2 in jd[key1].keys():
+            if key2 == 'Adapter':
+                continue
+            for key3 in jd[key1][key2].keys():
+                if not 'input' in key3:
+                    continue
+                temp.append(jd[key1][key2][key3])
+    max_temp = -1
+    for _ in temp:
+        max_temp = max(max_temp, _)
+    return max_temp
+
+
+def get_cuda_temp():
+    try:
+        temp = list()
+        stdout = os.popen('nvidia-smi dmon -s p -c 1')
+        lines = stdout.readlines()
+        stdout.close()
+        for line in lines:
+            if line.startswith("#"):
+                continue
+            line_split = re.split(r'[ ]+', line)
+            temp.append(int(line_split[3].strip()))
+        max_temp = -1
+        for _ in temp:
+            max_temp = max(max_temp, _)
+    except:
+        max_temp = 0
+    return max_temp
+
+
+def set_fan(percentage):
+    hex_value = hex(int(percentage*100))
+
+    os.system(f"ipmitool -I lanplus -H {ipmi_ip} -U {ipmi_username} -P {ipmi_password} raw 0x30 0x30 0x01 0x00")
+    os.system(f"ipmitool -I lanplus -H {ipmi_ip} -U {ipmi_username} -P {ipmi_password} raw 0x30 0x30 0x02 0xff "+hex_value)
+
+
+def cpu_fan(temp):
+    min_speed = 0.05
+    max_speed = 1
+    speed = min_speed + (max_speed-min_speed) / (cpu_thres_temp_max-cpu_thres_temp_min) * max(0, (temp-cpu_thres_temp_min))
+    speed = min(speed, max_speed)
+    speed = max(speed, min_speed)
+    return speed
+ 
+
+def gpu_fan(temp):
+    min_speed = 0.05
+    max_speed = 1
+    speed = min_speed + (max_speed-min_speed) / (gpu_thres_temp_max-gpu_thres_temp_min) * max(0, (temp-gpu_thres_temp_min))
+    speed = min(speed, max_speed)
+    speed = max(speed, min_speed)
+    return speed
+
+if __name__ == '__main__':
+    current_speed_cpu = 0.3
+    current_speed_gpu = 0.3
+    current_speed = 0.3
+    f = open('/var/log/control_fan.log', 'w+')
+    while True:
+        cpu_temp = get_cpu_temp()
+        gpu_temp = get_cuda_temp()
+        # gpu_temp = 0
+        # temp = max(cpu_temp, cuda_temp)
+        # if cpu_temp > cpu_thres_temp_max:
+        #     current_speed_cpu += speed_step
+        # elif cpu_temp < cpu_thres_temp_min:
+        #     current_speed_cpu -= speed_step
+        # else:
+        #     pass
+        # if gpu_temp > gpu_thres_temp_max:
+        #     current_speed_gpu += speed_step
+        # elif gpu_temp < gpu_thres_temp_min:
+        #     current_speed_gpu -= speed_step
+        # else:
+        #     pass
+        current_speed_cpu = cpu_fan(cpu_temp)
+        current_speed_gpu = gpu_fan(gpu_temp)
+        last_speed = current_speed
+        current_speed = max(current_speed_cpu, current_speed_gpu)
+        current_speed = current_speed * 0.1 + last_speed * 0.9
+        current_speed = min(current_speed, max_speed)
+        current_speed = max(current_speed, min_speed)
+        set_fan(current_speed)
+        current_speed_cpu, current_speed_gpu = current_speed, current_speed
+        strr = "cpu_tmp=%.3f, gpu_tmp=%.3f, fan=%.3f" %(cpu_temp, gpu_temp, current_speed_cpu)
+        f.write(strr+"\n")
+        f.flush()
+        time.sleep(1)
+        
