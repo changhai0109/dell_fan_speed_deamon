@@ -27,7 +27,7 @@
         "ipmi_password": "calvin",
         "machine_type": "idrac"
     },
-    "logfile": "./control_fan_idrac_server_client.log",
+    "logfile": "/var/log/control_fan_idrac_server_client.log",
     "run_interval": 1,
     "tasks": {
         "master": {

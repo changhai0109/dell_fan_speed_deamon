@@ -2,7 +2,7 @@
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/control_fan
+ExecStart=/usr/local/bin/control_fan --cfg_filename /etc/fan-control/idrac.json
 
 [Install]
 WantedBy=default.target

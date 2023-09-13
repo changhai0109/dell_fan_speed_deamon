@@ -17,7 +17,7 @@
         "ipmi_password": "root",
         "machine_type": "c6220"
     },
-    "logfile": "./control_fan_c6220_master.log",
+    "logfile": "/var/log/control_fan_c6220_master.log",
     "run_interval": 1,
     "tasks": {
         "master": {

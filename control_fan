@@ -1,6 +1,11 @@
-import os, re, json, time, socket, asyncio, logging, threading
+#!/usr/bin/python3
+import os, re, json, time, socket, asyncio, logging, threading, argparse
 
-cfg_filename = './idrac_client.json'
+parser = argparse.ArgumentParser()
+parser.add_argument('--cfg_filename', required=True)
+parser.parse_args()
+
+cfg_filename = parser.cfg_filename
 f = open(cfg_filename, 'r')
 cfg = json.load(f)
 f.close()
