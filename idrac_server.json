@@ -1,0 +1,40 @@
+{
+    "devices": [
+        {
+            "device": "cpu",
+            "init_speed": 0.3,
+            "thres_temp_min": 85,
+            "thres_temp_max": 95,
+            "min_speed": 0.05,
+            "max_speed": 1,
+            "speed_step": 0.05,
+            "speed_momentum": 0.2
+        },
+        {
+            "device": "cuda",
+            "init_speed": 0.3,
+            "thres_temp_min": 70,
+            "thres_temp_max": 80,
+            "min_speed": 0.05,
+            "max_speed": 1,
+            "speed_step": 0.05,
+            "speed_momentum": 0.2
+        }
+    ],
+    "ipmi_setup": {
+        "ipmi_ip": "0.0.0.0",
+        "ipmi_username": "root",
+        "ipmi_password": "calvin",
+        "machine_type": "idrac"
+    },
+    "logfile": "./control_fan_idrac_server.log",
+    "run_interval": 1,
+    "tasks": {
+        "master": {
+            "children": [
+                "127.0.0.1"
+            ],
+            "port": 12585
+        }
+    }
+}

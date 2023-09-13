@@ -1,0 +1,27 @@
+{
+    "devices": [
+        {
+            "device": "cpu",
+            "init_speed": 0.3,
+            "thres_temp_min": 85,
+            "thres_temp_max": 95,
+            "min_speed": 0.05,
+            "max_speed": 1,
+            "speed_step": 0.05,
+            "speed_momentum": 0.2
+        }
+    ],
+    "ipmi_setup": {
+        "ipmi_ip": "0.0.0.0",
+        "ipmi_username": "root",
+        "ipmi_password": "root",
+        "machine_type": "c6220"
+    },
+    "logfile": "./control_fan_c6220_client.log",
+    "run_interval": 1,
+    "tasks": {
+        "child": {
+            "port": 12585
+        }
+    }
+}
