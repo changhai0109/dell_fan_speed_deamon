@@ -3,14 +3,14 @@ import os, re, json, time, socket, asyncio, logging, threading, argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--cfg_filename', required=True)
-parser.parse_args()
+args = parser.parse_args()
 
-cfg_filename = parser.cfg_filename
+cfg_filename = args.cfg_filename
 f = open(cfg_filename, 'r')
 cfg = json.load(f)
 f.close()
 
-logging.basicConfig(filename=cfg['logfile'], level=logging.DEBUG)
+logging.basicConfig(filename=cfg['logfile'], level=logging.INFO)
 
 def get_gpu_temp():
     try:
@@ -90,8 +90,8 @@ def set_fan_idrac(percentage, ipmi_ip=None, ipmi_username="root", ipmi_password=
     hex_value = hex(int(percentage*100))
     ipmi_head = _get_ipmi_head(ipmi_ip, ipmi_username, ipmi_password)
     
-    # os.system(f"{ipmi_head} raw 0x30 0x30 0x01 0x00")
-    # os.system(f"{ipmi_head} raw 0x30 0x30 0x02 0xff {hex_value}")
+    os.system(f"{ipmi_head} raw 0x30 0x30 0x01 0x00")
+    os.system(f"{ipmi_head} raw 0x30 0x30 0x02 0xff {hex_value}")
     
     logging.debug(f"{ipmi_head} raw 0x30 0x30 0x01 0x00")
     logging.debug(f"{ipmi_head} raw 0x30 0x30 0x02 0xff {hex_value}")
@@ -101,7 +101,7 @@ def set_fan_c6220(percentage, ipmi_ip=None, ipmi_username="root", ipmi_password=
     hex_value = hex(int(percentage*100))
     ipmi_head = _get_ipmi_head(ipmi_ip, ipmi_username, ipmi_password)
     
-    # os.system(f"{ipmi_head} raw 0x30 0x19 0x20 {hex_value}")
+    os.system(f"{ipmi_head} raw 0x30 0x19 0x20 {hex_value}")
     
     logging.debug(f"{ipmi_head} raw 0x30 0x19 0x20 {hex_value}")
     
