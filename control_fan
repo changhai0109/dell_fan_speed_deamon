@@ -127,7 +127,7 @@ class TaskStandalone:
         
         if ipmi_setup["machine_type"] == "idrac":
             self.set_fan_fn = set_fan_idrac
-        elif ipmi_setup["mahine_type"] == "c6220":
+        elif ipmi_setup["machine_type"] == "c6220":
             self.set_fan_fn = set_fan_c6220
         else:
             assert False
