@@ -41,6 +41,8 @@ def get_cpu_temp():
         line += ll
     jd = json.loads(line)
     for key1 in jd.keys():
+        if 'pci' in key1:
+            continue
         for key2 in jd[key1].keys():
             if key2 == 'Adapter':
                 continue
@@ -49,6 +51,31 @@ def get_cpu_temp():
                     continue
                 temp.append(jd[key1][key2][key3])
     max_temp = -1
+    for _ in temp:
+        max_temp = max(max_temp, _)
+    return max_temp
+
+
+def get_pci_temp():
+    temp = list()
+    stdout = os.popen('sensors -j')
+    lines = stdout.readlines()
+    stdout.close()
+    line = ""
+    for ll in lines:
+        line += ll
+    jd = json.loads(line)
+    for key1 in jd.keys():
+        if not 'pci' in key1:
+            continue
+        for key2 in jd[key1].keys():
+            if key2 == 'Adapter':
+                continue
+            for key3 in jd[key1][key2].keys():
+                if not 'input' in key3:
+                    continue
+                temp.append(jd[key1][key2][key3])
+    max_temp = 0
     for _ in temp:
         max_temp = max(max_temp, _)
     return max_temp
@@ -119,6 +146,8 @@ class TaskStandalone:
                 temp_fn = get_cpu_temp
             elif device == 'cuda' or device == 'gpu':
                 temp_fn = get_gpu_temp
+            elif device == 'pci':
+                temp_fn = get_pci_temp
             del device_cfg['device']
             fan_speed_alg = FanSpeedAlg(**device_cfg)
             self.devices.append((temp_fn, fan_speed_alg))
@@ -127,7 +156,7 @@ class TaskStandalone:
         
         if ipmi_setup["machine_type"] == "idrac":
             self.set_fan_fn = set_fan_idrac
-        elif ipmi_setup["mahine_type"] == "c6220":
+        elif ipmi_setup["machine_type"] == "c6220":
             self.set_fan_fn = set_fan_c6220
         else:
             assert False
@@ -159,7 +188,7 @@ class TaskMaster:
         
         if ipmi_setup["machine_type"] == "idrac":
             self.set_fan_fn = set_fan_idrac
-        elif ipmi_setup["mahine_type"] == "c6220":
+        elif ipmi_setup["machine_type"] == "c6220":
             self.set_fan_fn = set_fan_c6220
         else:
             assert False
@@ -183,17 +212,18 @@ class TaskMaster:
         for i, child in enumerate(self.children):
             try:
                 child_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                child_socket.settimeout(2)
                 child_socket.connect((child, self.port))
                 child_socket.send(request.encode('utf-8'))
                 response = child_socket.recv(255).decode('utf-8')
                 speed = float(response)
                 speeds.append(speed)
                 logging.info(f"response={response}, speed={speed}")
-                child_socket.close
-            except ConnectionRefusedError as e:
+                child_socket.close()
+            except:
                 pass
         if len(speeds) != len(self.children):
-            speeds.append(1)
+            speeds.append(0.5)
         speed = max(speeds)
         self.set_fan_fn(speed, **self.ipmi_setup)
 
@@ -215,6 +245,8 @@ class TaskClient:
                 temp_fn = get_cpu_temp
             elif device == 'cuda' or device == 'gpu':
                 temp_fn = get_gpu_temp
+            elif device == 'pci':
+                temp_fn = get_pci_temp
             del device_cfg['device']
             fan_speed_alg = FanSpeedAlg(**device_cfg)
             self.devices.append((temp_fn, fan_speed_alg))

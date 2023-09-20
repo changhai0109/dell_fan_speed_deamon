@@ -3,13 +3,23 @@
         {
             "device": "cpu",
             "init_speed": 0.3,
-            "thres_temp_min": 85,
-            "thres_temp_max": 95,
-            "min_speed": 0.05,
+            "thres_temp_min": 75,
+            "thres_temp_max": 90,
+            "min_speed": 0.15,
             "max_speed": 1,
             "speed_step": 0.05,
             "speed_momentum": 0.2
-        }
+        },
+	{
+	    "device": "pci", 
+	    "init_speed": 0.3, 
+	    "thres_temp_min": 85, 
+	    "thres_temp_max": 95, 
+	    "min_speed": 0.15, 
+	    "max_speed": 1, 
+	    "speed_step": 0.05, 
+	    "speed_momentum": 0.2
+	}
     ],
     "ipmi_setup": {
         "ipmi_ip": "0.0.0.0",
@@ -25,7 +35,7 @@
                 "192.168.3.1",
                 "192.168.3.2",
                 "192.168.3.3",
-                "192.168.3.4"
+		"192.168.3.4"
             ],
             "port": 12585
         },
